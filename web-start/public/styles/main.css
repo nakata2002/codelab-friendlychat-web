@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
- html, body {
+ html {
+  font-family: 'Roboto', 'Helvetica', sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+body{
   font-family: 'Roboto', 'Helvetica', sans-serif;
 }
 main, #messages-card {
@@ -101,12 +106,12 @@ main, #messages-card {
   font-size: 12px;
   box-sizing: border-box;
 }
-#message-form {
+/* #message-form {
   display: flex;
   flex-direction: row;
   width: calc(100% - 48px);
   float: left;
-}
+} */
 #image-form {
   display: flex;
   flex-direction: row;
@@ -167,9 +172,13 @@ main, #messages-card {
   max-width: 300px;
   max-height: 200px;
 }
-#mediaCapture {
-  display: none;
+.image img {
+  max-width: 300px;
+  max-height: 200px;
 }
+/* #mediaCapture {
+  display: none;
+} */
 @media screen and (max-width: 610px) {
   header {
     height: 113px;
@@ -198,4 +207,157 @@ main, #messages-card {
 .mdl-button .material-icons {
   top: -1px;
   margin-right: 5px;
+}
+
+.button {
+  background: lightblue;
+  color: #fff;
+  padding: 0 2em;
+  border: 0;
+  width: 500px;
+  height: 100px;
+  font-size: 45px;
+  border-radius: 5px;
+  font-weight: 900;
+  position: relative;
+  left: 400px;
+  top: 260px;
+  font-family: serif;
+}
+
+.button:hover {
+  background: lightcoral;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #f4f4f4;
+  margin: 20% auto;
+  width: 50%;
+  box-shadow: 0 5px 8px 0 rgba(0,0,0,0.2),0 7px 20px 0 rgba(0,0,0,0.17);
+  animation-name: modalopen;
+  animation-duration: 1s;
+}
+
+@keyframes modalopen {
+  from {opacity: 0}
+  to {opacity: 1}
+}
+
+.modal-header h1 {
+  margin: 1rem 0;
+}
+
+.modal-header {
+  background: lightblue;
+  padding: 3px 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modalClose {
+  font-size: 2rem;
+}
+
+.modalClose:hover {
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 10px 20px;
+  color: black;
+}
+
+.search_group {
+  max-width: 60rem;
+  margin: auto;
+  margin-top: 100px;
+  padding-bottom: 1em;
+  border: 2px solid grey;
+  border-radius: 10px;
+}
+.spotIndex_search_form {
+  padding: 1em 1em 0 1em;
+  margin: 0 auto;
+}
+
+.spot_search_top {
+  display: flex;
+  justify-content: center;
+}
+
+.spotIndex_search_text {
+  width: 50%;
+  text-align: center;
+  margin-bottom: 15px;
+  padding: 0 5px;
+  font-size: 1.5rem;
+  border-style: none;
+  outline: none;
+  border-bottom: solid 2px silver;
+  /* background: #EEFFFF; */
+}
+
+@media screen and (max-width: 896px){
+  .spotIndex_search_text {
+      width: 80%;
+  }
+}
+
+/* ::after, ::before {
+  box-sizing: border-box;
+} */
+.spotIndex_search_button {
+  margin-bottom: 10px;
+  color: silver;
+  border-style: none;
+  display: block;
+  cursor: pointer;
+  outline: none;
+  background: #ffffff;
+  /* background: #EEFFFF; */
+}
+[type=button], [type=reset], [type=submit], button {
+  -webkit-appearance: button;
+}
+
+button {
+  appearance: auto;
+  writing-mode: horizontal-tb !important;
+  text-rendering: auto;
+  /* color: buttontext; */
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: center;
+  align-items: flex-start;
+  cursor: default;
+  box-sizing: border-box;
+  /* background-color: buttonface; */
+  margin: 0em;
+  padding: 1px 6px;
+  border-width: 2px;
+  border-style: outset;
+  border-color: buttonborder;
+  border-image: initial;
+}
+.checksearch{
+  display: contents;
+  width: 100px;
 }

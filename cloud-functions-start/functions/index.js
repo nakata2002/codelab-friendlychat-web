@@ -15,9 +15,35 @@
  */
 
 // TODO(DEVELOPER): Import the Cloud Functions for Firebase and the Firebase Admin modules here.
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 
+// const admin = require('firebase-admin');
+admin.initializeApp();
 // TODO(DEVELOPER): Write the addWelcomeMessages Function here.
+exports.addWelcomeMessages = functions.auth.user().onCreate(async (user) => {
+    functions.logger.log('初めてサインインした新しいユーザー');
+    const fullName = user.displayName || 'Anonymous';
 
+    await admin.firestore().collection('messages').add({
+        name: 'a',
+        profilePicUrl: '/images/firebase-logo.png',
+        text: `$(fullName) watch ようこそ`,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+    functions.logger.log('データベースに書き込まれるウエルカムメッセージ');
+});
 // TODO(DEVELOPER): Write the blurOffensiveImages Function here.
-
+const { blurOffensiveImages } = require("./img");
+exports.blurOffensiveImages = blurOffensiveImages;
 // TODO(DEVELOPER): Write the sendNotifications Function here.
+
+import fetch from 'node-fetch';
+
+// function url(url){
+//     const res = await fetch('https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike');
+//     const data = await res.json();
+// }
+
+
+console.log(data);

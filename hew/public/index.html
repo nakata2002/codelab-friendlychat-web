@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" content="">
+<title>就職作品</title>
+<link rel="stylesheet" href="styles/style.css" />
+<style></style>
+</head>
+<body>
+  <form action="" method="get">
+    <input type="text" name="Search">
+    <input type="button" value="検索" onclick="getJSON()"> 
+    <input type="button" id="doLogin" value="チャット"> 
+    <input type="button" id="doPhp" value="php">   
+  </form>
+  <ul id="rakutenItem"></ul>
+
+<!-- End Yahoo! JAPAN Web Services Attribution Snippet -->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+<!-- <script src="path/to/my/store.legacy.min.js"></script> -->
+<!-- <script src="yahoo.js"></script> -->
+<!-- <script>
+  function callbackFunc(res) {  // callback関数
+  }
+</script>
+  <script src="https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&callback=callbackFunc&query=nike"></script> -->
+<script>
+//   import fetch from 'node-fetch';
+
+// const res = await fetch('https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike');
+// const data = await res.json();
+document.getElementById("doLogin").onclick = function () {
+  location.href = 'result.html';
+}
+document.getElementById("doPhp").onclick = function () {
+  location.href = 'php/index.php';
+}
+// console.log(data);
+function getJSON() {
+(async () => {
+      const searchName = document.getElementById("Search");
+      // const url = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?format=json&keyword=" + searchName + "&genreId=5550&applicationId=1056658452618599349";
+      const url = "https://app.rakuten.co.jp/services/api/IchibaItem/Ranking/20170628?format=json&genreId=111961&applicationId=1056658452618599349";
+
+      // const url = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike";
+      const res = await fetch(url);
+      // console.log(res);
+      let json;
+      
+      try {
+        if (res.ok) {
+          json = await res.json();
+          let allItem = "";
+          for (let i = 0; i < json.Items.length; i++) {
+            const url = 'public.html';
+            const product = json.Items[i].Item;
+            const productLink = product.itemUrl;
+            const productImage = product.mediumImageUrls[0].imageUrl;
+            const productName = product.itemName;
+            const shopName = product.shopName;
+            const productPrice = product.itemPrice.toLocaleString();
+            let allItemParts =
+              `<li><a href="` +
+                url + '?link=' + 
+                productLink + '&img=' + productImage + '&name=' +
+                productName + '&sname=' + shopName + '&price=' +
+                productPrice +
+              `" target="_blank" class="productLink link-` +
+              (i + 1) +
+              `">
+              <img src="` +
+              productImage +
+              `" alt="` +
+              productName +
+              `" class="productImage">
+              <div class="shopname">`
+              + shopName + `</div>
+              <p class="productName">` +
+              productName +
+              `</p>
+              <p class="productPrice">` +
+              productPrice +
+              `<span>円</span></p>
+              </a></li>`;
+            allItem += allItemParts;
+          }
+          document.getElementById("rakutenItem").innerHTML = allItem;
+        } else {
+          throw new Error(res.status);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }
+    // function getJSON() {
+    //   var req = new XMLHttpRequest();		  // XMLHttpRequest オブジェクトを生成する
+    //   req.onreadystatechange = function() {		  // XMLHttpRequest オブジェクトの状態が変化した際に呼び出されるイベントハンドラ
+    //     if(req.readyState == 4 && req.status == 200){ // サーバーからのレスポンスが完了し、かつ、通信が正常に終了した場合
+    //       alert(req.responseText);
+    //       console.log(req)
+    //       json = req.responseText.json();
+        
+    //       let allItem = "";
+    //       for (let i = 0; i < json.Items.length; i++) {
+    //         const product = json.Items[i].Item;
+    //         const productLink = product.itemUrl;
+    //         const productImage = product.mediumImageUrls[0].imageUrl;
+    //         const productName = product.itemName;
+    //         const shopName = product.shopName;
+    //         const productPrice = product.itemPrice.toLocaleString();
+    //         let allItemParts =
+    //           `<li><a href="` +
+    //           productLink +
+    //           `" target="_blank" class="productLink link-` +
+    //           (i + 1) +
+    //           `">
+    //           <img src="` +
+    //           productImage +
+    //           `" alt="` +
+    //           productName +
+    //           `" class="productImage">
+    //           <div class="shopname">`
+    //           + shopName + `</div>
+    //           <p class="productName">` +
+    //           productName +
+    //           `</p>
+    //           <p class="productPrice">` +
+    //           productPrice +
+    //           `<span>円</span></p>
+    //           </a></li>`;
+    //         allItem += allItemParts;
+    //       }
+    //       document.getElementById("rakutenItem").innerHTML = allItem;          // 取得した JSON ファイルの中身を表示
+    //     }else {
+    //       throw new Error(req.status);
+    //     }
+    //   };
+    //   // req.open("GET", "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike", false); // HTTPメソッドとアクセスするサーバーの　URL　を指定
+    //   req.open("GET", "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?format=json&keyword=ナイキ&genreId=555086&applicationId=1056658452618599349", false); // HTTPメソッドとアクセスするサーバーの　URL　を指定
+    //   req.send(null);					    // 実際にサーバーへリクエストを送信
+    // }
+    // function callbackFunc(res) {  // callback関数
+    //   // resにAPIからの返り値がオブジェクトとして入っている
+    //   console.log(res);
+    // }
+
+
+    // let url1 = 'https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&callback=callbackFunc&query=nike';
+    // // let url1 = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706?format=json&keyword=ナイキ&genreId=555086&applicationId=1056658452618599349';
+
+    // fetch(url1)
+    // .then(response => response.json())
+    // .then(data => {
+    //   console.log(data);
+    // });
+
+
+// $(function() {
+//   const getData = $.ajax({
+//     url: 'https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike',
+//     dataType: 'jsonp',
+//     jsonpCallback: 'sample'
+//   });
+//   getData.then(
+//     function(data) {
+//       console.log('取得内容:', data);
+//     },
+//     function(error) {
+//       console.log('エラー内容:', error);
+//     }
+//   );
+// });
+
+// const axios = require('axios');
+// const jsonpAdapter = require('axios-jsonp');
+
+// axios({
+//   url: 'https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch?appid=dj00aiZpPTBZYm1vTU1hTGswViZzPWNvbnN1bWVyc2VjcmV0Jng9MDg-&query=nike',
+//   adapter: jsonpAdapter,
+//   callbackParamName: 'c' // optional, 'callback' by default
+// }).then((res) => {
+//   console.log(res);
+// });
+</script>
+</body>
+</html>

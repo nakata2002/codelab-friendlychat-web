@@ -1,0 +1,173 @@
+ul#rakutenItem {
+    list-style: none;
+    padding: 0;
+    border: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 0;
+}
+ul#rakutenItem li {
+    width: calc(11% - 20px);
+}
+ul#rakutenItem li a {
+    border-radius: 2px;
+    background: #fff;
+    box-shadow: 0 0 3px 0 rgb(0 0 0 / 12%), 0 2px 3px 0 rgb(0 0 0 / 22%);
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    height: 100%;
+    padding-bottom: 12px;
+    position: relative;
+}
+ul#rakutenItem li a:hover {
+    box-shadow: 0 15px 30px -5px rgb(0 0 0 / 15%), 0 0 5px rgb(0 0 0 / 10%);
+    transform: translateY(-4px);
+}
+
+ul#rakutenItem p {
+    color: #313131;
+    margin: 0;
+}
+
+/* 画像 */
+ul#rakutenItem li a img {
+    height: 200px;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border-radius: 3px 3px 0 0;
+}
+/* ショップ名 */
+.shopname {
+    padding-left: 15px;
+    font-size: 0.7rem;
+    color: #707070;
+}
+/* 商品名 */
+p.productName {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    flex-grow: 1;
+    padding-left: 15px;
+    padding-right: 15px;
+    line-height: 1.5;
+}
+
+/* 価格 */
+p.productPrice {
+    font-family: Speedee, メイリオ, Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.02rem;
+    padding-left: 15px;
+    padding-right: 10px;
+    text-align: right;
+    color: #D80C18 !important;
+}
+p.productPrice span {
+    font-size: 1rem;
+    margin-left: 3px;
+    font-weight: 300;
+}
+
+@media screen and (max-width: 767px) {
+/* （ここにモバイル用スタイルを記述） */
+  ul#rakutenItem li {
+      width: 100%;
+  }
+}
+
+body{
+    font-size: 14px;
+    font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', 'HiraginoSans-W3', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif;
+}
+article{
+    display: flex;
+}
+div.side{
+    width: 300px;
+    height: 100%;
+    background-color: #eeeeee;
+}
+div.keyworRanking, div.categoryRanking{
+    padding: 10px 20px;
+}
+div.categoryRanking{
+    width: 400px;
+}
+header{
+    color: azure;
+    background-color: #404849;
+    border-radius: 3px;
+}
+.content{
+    width: 1000px;
+    display: flex;
+    margin: 20px 200px;
+}
+h1{  
+    font-size: 18px;
+    padding: 5px;
+    margin: 0;
+}
+p{
+    margin: 0;
+    padding: 3px;
+}
+p.data{
+    margin: 10px 5px;
+}
+div.keyworRanking > p, div.categoryRanking > p{
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+    color: azure;
+    background-color: #404849;
+}
+table{
+    border-collapse: collapse;
+    border: solid 1px #333;
+    background-color: #eeeeee;
+}
+th, td{
+    border-collapse: collapse;
+    border: 1px solid #333;
+}
+body > main > div.keyworRanking > table > tr:nth-child(3) > td.rank > img{
+    text-align: right;
+}
+span{
+    font-size: 40px;
+}
+@media screen and (max-width: 1275px) {
+    article{
+        display: block;
+    }
+}
+@media screen and (max-width: 1100px) {
+    /* body{
+        width: 300px;
+    } */
+    article{
+        display: block;
+    }
+    .content{
+        display: block;
+        width: 100%;
+        margin: 0 auto;
+    }
+    div.side{
+        width: 100%;
+    }
+    div.keyworRanking, div.categoryRanking{
+        width: 300px;
+        margin: 0 auto;
+    }
+
+}

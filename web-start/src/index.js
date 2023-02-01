@@ -46,6 +46,7 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { getPerformance } from 'firebase/performance';
 
 import { getFirebaseConfig } from './firebase-config.js';
+let fileList;
 
 // Signs-in Friendly Chat.
 async function signIn() {
@@ -83,20 +84,60 @@ function getUserName() {
 // Returns true if a user is signed-in.
 function isUserSignedIn() {
   // TODO 6: Return true if a user is signed-in.
+  console.log("fljasldkfjsdaklfj---"+!!getAuth().currentUser);
   return !!getAuth().currentUser;
 }
 
 // Saves a new message on the Cloud Firestore.
-async function saveMessage(messageText) {
+async function saveMessage(messageText,address,imgUrl,fileList,comment,checkboxs,fishname,rodname) {
   // TODO 7: Push a new message to Cloud Firestore.
   // Add a new message entry to the Firebase database.
   try {
-    await addDoc(collection(getFirestore(), 'messages'), {
+    let str = [];
+    console.log("111111111111111"+checkboxs.length);
+
+      for (let i = 0; i < checkboxs.length; i++) {
+          if ( checkboxs[i].checked === true ) {
+              str.push(checkboxs[i].value);
+              console.log("----"+i);
+          }
+      }
+      console.log("----"+fishname);
+      let fishlist;
+      if(fishname.indexOf('、') !== -1){
+        fishlist = fishname.split('、');
+      }else if(fishname.indexOf(',') !== -1){
+        fishlist = fishname.split(',');
+      }else if(fishname.indexOf('.') !== -1){
+        fishlist = fishname.split('.');
+      }
+
+    const messageRef = await addDoc(collection(getFirestore(), 'messages'), {
       name: getUserName(),
       text: messageText,
+      address: address,
+      imageUrl: imgUrl,
+      comment: comment,
+      checkboxs: str,
+      fishlist: fishlist,
+      rodname: rodname,
       profilePicUrl: getProfilePicUrl(),
       timestamp: serverTimestamp()
     });
+    console.log("file----------------"+fileList);
+     // 2 - Upload the image to Cloud Storage.
+     const filePath = `${getAuth().currentUser.uid}/${messageRef.id}/${fileList.name}`;
+     const newImageRef = ref(getStorage(), filePath);
+     const fileSnapshot = await uploadBytesResumable(newImageRef, fileList);
+     
+     // 3 - Generate a public URL for the file.
+     const publicImageUrl = await getDownloadURL(newImageRef);
+ 
+     // 4 - Update the chat message placeholder with the image's URL.
+     await updateDoc(messageRef,{
+       imageUrl: publicImageUrl,
+       storageUri: fileSnapshot.metadata.fullPath
+     });
   }
   catch(error) {
     console.error('Error writing new message to Firebase Database', error);
@@ -117,7 +158,9 @@ function loadMessages() {
       } else {
         var message = change.doc.data();
         displayMessage(change.doc.id, message.timestamp, message.name,
-                      message.text, message.profilePicUrl, message.imageUrl);
+                      message.text,message.address, message.profilePicUrl,
+                       message.imageUrl,message.comment,message.checkboxs,
+                       message.fishlist,message.rodname);
       }
     });
   });
@@ -125,34 +168,34 @@ function loadMessages() {
 
 // Saves a new message containing an image in Firebase.
 // This first saves the image in Firebase storage.
-async function saveImageMessage(file) {
-  // TODO 9: Posts a new image as a message.
-  try {
-    // 1 - We add a message with a loading icon that will get updated with the shared image.
-    const messageRef = await addDoc(collection(getFirestore(), 'messages'), {
-      name: getUserName(),
-      imageUrl: LOADING_IMAGE_URL,
-      profilePicUrl: getProfilePicUrl(),
-      timestamp: serverTimestamp()
-    });
+// async function saveImageMessage(file) {
+//   // TODO 9: Posts a new image as a message.
+//   try {
+//     // 1 - We add a message with a loading icon that will get updated with the shared image.
+//     const messageRef = await addDoc(collection(getFirestore(), 'messages'), {
+//       name: getUserName(),
+//       imageUrl: LOADING_IMAGE_URL,
+//       profilePicUrl: getProfilePicUrl(),
+//       timestamp: serverTimestamp()
+//     });
 
-    // 2 - Upload the image to Cloud Storage.
-    const filePath = `${getAuth().currentUser.uid}/${messageRef.id}/${file.name}`;
-    const newImageRef = ref(getStorage(), filePath);
-    const fileSnapshot = await uploadBytesResumable(newImageRef, file);
+//     // 2 - Upload the image to Cloud Storage.
+//     const filePath = `${getAuth().currentUser.uid}/${messageRef.id}/${file.name}`;
+//     const newImageRef = ref(getStorage(), filePath);
+//     const fileSnapshot = await uploadBytesResumable(newImageRef, file);
     
-    // 3 - Generate a public URL for the file.
-    const publicImageUrl = await getDownloadURL(newImageRef);
+//     // 3 - Generate a public URL for the file.
+//     const publicImageUrl = await getDownloadURL(newImageRef);
 
-    // 4 - Update the chat message placeholder with the image's URL.
-    await updateDoc(messageRef,{
-      imageUrl: publicImageUrl,
-      storageUri: fileSnapshot.metadata.fullPath
-    });
-  } catch (error) {
-    console.error('There was an error uploading a file to Cloud Storage:', error);
-  }
-}
+//     // 4 - Update the chat message placeholder with the image's URL.
+//     await updateDoc(messageRef,{
+//       imageUrl: publicImageUrl,
+//       storageUri: fileSnapshot.metadata.fullPath
+//     });
+//   } catch (error) {
+//     console.error('There was an error uploading a file to Cloud Storage:', error);
+//   }
+// }
 
 // Saves the messaging device token to Cloud Firestore.
 async function saveMessagingDeviceToken() {
@@ -196,17 +239,15 @@ async function requestNotificationsPermissions() {
     console.log('Unable to get permission to notify.');
   }
 }
-
 // Triggered when a file is selected via the media picker.
 function onMediaFileSelected(event) {
   event.preventDefault();
-  var file = event.target.files[0];
-
+  fileList = event.target.files[0];
   // Clear the selection in the file picker input.
-  imageFormElement.reset();
+  // imageFormElement.reset();
 
   // Check if the file is an image.
-  if (!file.type.match('image.*')) {
+  if (!fileList.type.match('image.*')) {
     var data = {
       message: 'You can only share images',
       timeout: 2000,
@@ -215,24 +256,30 @@ function onMediaFileSelected(event) {
     return;
   }
   // Check if the user is signed-in
-  if (checkSignedInWithMessage()) {
-    saveImageMessage(file);
-  }
+  // if (checkSignedInWithMessage()) {
+  //   saveImageMessage(file);
+  // }
 }
 
 // Triggered when the send new message form is submitted.
 function onMessageFormSubmit(e) {
   e.preventDefault();
   // Check that the user entered a message and is signed in.
-  if (messageInputElement.value && checkSignedInWithMessage()) {
-    saveMessage(messageInputElement.value).then(function () {
-      // Clear message text field and re-enable the SEND button.
-      resetMaterialTextfield(messageInputElement);
-      toggleButton();
-    });
+  if (checkSignedInWithMessage()){
+    if(messageInputElement.value && addressInputElement.value && mediaCaptureElement.value && commentInputElement.value){
+      saveMessage(messageInputElement.value,addressInputElement.value,mediaCaptureElement.value,fileList,commentInputElement.value,checkInputElement,fishnameInputElement.value,rodnameInputElement.value).then(function () {
+        // Clear message text field and re-enable the SEND button.
+        resetMaterialTextfield(messageInputElement);
+        resetMaterialTextfield(commentInputElement);
+        resetMaterialTextfield(addressInputElement);
+        resetMaterialTextfield(mediaCaptureElement);
+        resetMaterialTextfield(fishnameInputElement);
+        resetMaterialTextfield(rodnameInputElement);
+        toggleButton();
+      });
+    }
   }
 }
-
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
 function authStateObserver(user) {
   if (user) {
@@ -276,11 +323,11 @@ function checkSignedInWithMessage() {
   }
 
   // Display a message to the user using a Toast.
-  var data = {
-    message: 'You must sign-in first',
-    timeout: 2000,
-  };
-  signInSnackbarElement.MaterialSnackbar.showSnackbar(data);
+  // var data = {
+  //   message: 'You must sign-in first',
+  //   timeout: 2000,
+  // };
+  signInSnackbarElement.innerHTML = "サインインしてください";
   return false;
 }
 
@@ -295,7 +342,13 @@ var MESSAGE_TEMPLATE =
   '<div class="message-container">' +
   '<div class="spacing"><div class="pic"></div></div>' +
   '<div class="message"></div>' +
+  '<div class="address"></div>' +
   '<div class="name"></div>' +
+  '<div class="image"></div>' +
+  '<div class="fishlist"></div>' +
+  '<div class="rodname"></div>' +
+  '<div class="str"></div>' +
+  '<div class="comment"></div>' +
   '</div>';
 
 // Adds a size to Google Profile pics URLs.
@@ -307,7 +360,7 @@ function addSizeToGoogleProfilePic(url) {
 }
 
 // A loading image URL.
-var LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif?a';
+// var LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif?a';
 
 // Delete a Message from the UI.
 function deleteMessage(id) {
@@ -359,7 +412,8 @@ function createAndInsertMessage(id, timestamp) {
 }
 
 // Displays a Message in the UI.
-function displayMessage(id, timestamp, name, text, picUrl, imageUrl) {
+function displayMessage(id, timestamp, name, text, address, picUrl, imageUrl,comment,str,fishlist,rodname) {
+  console.log("-------str----"+str);
   var div =
     document.getElementById(id) || createAndInsertMessage(id, timestamp);
 
@@ -371,21 +425,52 @@ function displayMessage(id, timestamp, name, text, picUrl, imageUrl) {
 
   div.querySelector('.name').textContent = name;
   var messageElement = div.querySelector('.message');
+  var addressElement = div.querySelector('.address');
+  var imageElement = div.querySelector('.image');
+  var commentElement = div.querySelector('.comment');
+  var checkElement = div.querySelector('.str');
+  var fishlistElement = div.querySelector('.fishlist');
+  var rodnameElement = div.querySelector('.rodname');
 
   if (text) {
     // If the message is text.
     messageElement.textContent = text;
     // Replace all line breaks by <br>.
     messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-  } else if (imageUrl) {
+  }
+  if (imageUrl) {
     // If the message is an image.
     var image = document.createElement('img');
     image.addEventListener('load', function () {
       messageListElement.scrollTop = messageListElement.scrollHeight;
     });
     image.src = imageUrl + '&' + new Date().getTime();
-    messageElement.innerHTML = '';
-    messageElement.appendChild(image);
+    imageElement.innerHTML = '';
+    imageElement.appendChild(image);
+  }
+  if (address){
+    addressElement.textContent = address;
+    addressElement.innerHTML = addressElement.innerHTML.replace(/\n/g, '<br>');
+  }
+  if (comment){
+    commentElement.textContent = comment;
+    commentElement.innerHTML = commentElement.innerHTML.replace(/\n/g, '<br>');
+  }
+  if (str){
+    str = str.join(' ');
+    checkElement.innerHTML = '';
+    checkElement.textContent = str;
+    checkElement.innerHTML = checkElement.innerHTML.replace(/\n/g, '<br>');
+  }
+  if(fishlist){
+    fishlist = fishlist.join(' ');
+    fishlistElement.innerHTML = '';
+    fishlistElement.textContent = fishlist;
+    fishlistElement.innerHTML = fishlistElement.innerHTML.replace(/\n/g, '<br>');
+  }
+  if(rodname){
+    rodnameElement.textContent = rodname;
+    rodnameElement.innerHTML = rodnameElement.innerHTML.replace(/\n/g, '<br>');
   }
   // Show the card fading-in and scroll to view the new message.
   setTimeout(function () {
@@ -393,12 +478,16 @@ function displayMessage(id, timestamp, name, text, picUrl, imageUrl) {
   }, 1);
   messageListElement.scrollTop = messageListElement.scrollHeight;
   messageInputElement.focus();
+  addressInputElement.focus();
+  commentInputElement.focus();
+  fishnameInputElement.focus();
+  rodnameInputElement.focus();
 }
 
 // Enables or disables the submit button depending on the values of the input
 // fields.
 function toggleButton() {
-  if (messageInputElement.value) {
+  if (messageInputElement.value && addressInputElement.value && mediaCaptureElement.value && commentInputElement.value) {
     submitButtonElement.removeAttribute('disabled');
   } else {
     submitButtonElement.setAttribute('disabled', 'true');
@@ -409,9 +498,15 @@ function toggleButton() {
 var messageListElement = document.getElementById('messages');
 var messageFormElement = document.getElementById('message-form');
 var messageInputElement = document.getElementById('message');
+var addressInputElement = document.getElementById('address');
+var commentInputElement = document.getElementById('comment');
+var fishnameInputElement = document.getElementById('fishname');
+var rodnameInputElement = document.getElementById('rodname');
+var checkInputElement = document.getElementsByClassName('checkboxs');
+
 var submitButtonElement = document.getElementById('submit');
-var imageButtonElement = document.getElementById('submitImage');
-var imageFormElement = document.getElementById('image-form');
+// var imageButtonElement = document.getElementById('submitImage');
+// var imageFormElement = document.getElementById('image-form');
 var mediaCaptureElement = document.getElementById('mediaCapture');
 var userPicElement = document.getElementById('user-pic');
 var userNameElement = document.getElementById('user-name');
@@ -427,12 +522,22 @@ signInButtonElement.addEventListener('click', signIn);
 // Toggle for the button.
 messageInputElement.addEventListener('keyup', toggleButton);
 messageInputElement.addEventListener('change', toggleButton);
-
+addressInputElement.addEventListener('keyup', toggleButton);
+addressInputElement.addEventListener('change', toggleButton);
+commentInputElement.addEventListener('keyup', toggleButton);
+commentInputElement.addEventListener('change', toggleButton);
+fishnameInputElement.addEventListener('keyup', toggleButton);
+fishnameInputElement.addEventListener('change', toggleButton);
+rodnameInputElement.addEventListener('keyup', toggleButton);
+rodnameInputElement.addEventListener('change', toggleButton);
+// checkInputElement.addEventListener('keyup', toggleButton);
+// checkInputElement.addEventListener('change', toggleButton);
 // Events for image upload.
-imageButtonElement.addEventListener('click', function (e) {
-  e.preventDefault();
-  mediaCaptureElement.click();
-});
+// imageButtonElement.addEventListener('click', function (e) {
+//   e.preventDefault();
+//   mediaCaptureElement.click();
+// });
+//画像がいれられたとき
 mediaCaptureElement.addEventListener('change', onMediaFileSelected);
 
 const firebaseAppConfig = getFirebaseConfig();
@@ -445,3 +550,28 @@ loadMessages();
 
 // TODO: Enable Firebase Performance Monitoring.
 getPerformance();
+
+//モーダル表示
+const buttonOpen = document.getElementById('modalOpen');
+const modal = document.getElementById('easyModal');
+const buttonClose = document.getElementsByClassName('modalClose')[0];
+
+// ボタンがクリックされた時
+buttonOpen.addEventListener('click', modalOpen);
+function modalOpen() {
+  modal.style.display = 'block';
+}
+
+// バツ印がクリックされた時
+buttonClose.addEventListener('click', modalClose);
+function modalClose() {
+  modal.style.display = 'none';
+}
+
+// モーダルコンテンツ以外がクリックされた時
+addEventListener('click', outsideClose);
+function outsideClose(e) {
+  if (e.target == modal) {
+    modal.style.display = 'none';
+  }
+}
